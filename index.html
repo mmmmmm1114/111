@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>You Died v4.4 — Mirror #13</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#0a0a0a;
+      color:#00ff41;
+      font-family:'Share Tech Mono', monospace;
+      font-size:16px;
+      line-height:1.4;
+      padding:20px;
+    }
+
+    header { text-align:center; margin-bottom:30px; position:relative; }
+    h1 {
+      font-family:'VT323', monospace;
+      font-size:4.5rem;
+      color:#ff0044;
+      text-shadow:0 0 10px #ff0044, 0 0 30px #aa0030, 0 0 60px #660000;
+      letter-spacing:6px;
+      animation:glitch 4s infinite;
+    }
+
+    .status { color:#00cc00; margin:10px 0; font-size:1.3rem; }
+    .warning { color:#ff0044; font-weight:bold; margin:20px 0; text-align:center; animation:blink 1s infinite; }
+    .mirror-info { color:#888; font-size:0.9rem; margin-bottom:30px; }
+
+    table {
+      width:100%; max-width:1100px; margin:0 auto 40px;
+      border-collapse:collapse; background:#111; border:1px solid #aa0030;
+    }
+    th, td { padding:14px; border:1px solid #330000; text-align:left; }
+    th { background:#220000; color:#ff0080; text-transform:uppercase; font-size:0.95rem; }
+    tr:hover { background:#1a1a1a; }
+
+    .price { color:#ffaa00; font-weight:bold; }
+    .vendor { color:#aaa; }
+    .online { color:#00ff41; }
+    .offline { color:#555; }
+
+    .btn {
+      display:inline-block; background:#220000; color:#ff0044;
+      border:2px solid #aa0030; padding:10px 20px; margin:8px;
+      text-decoration:none; font-weight:bold; transition:all 0.15s;
+    }
+    .btn:hover { background:#330000; box-shadow:0 0 15px #ff0044; }
+
+    footer { text-align:center; color:#444; margin-top:60px; font-size:0.85rem; }
+
+    .ascii {
+      font-family:'VT323', monospace; font-size:1.1rem;
+      white-space:pre; color:#660000; margin:20px auto;
+      text-align:center; max-width:90%;
+    }
+
+    @keyframes glitch {
+      0%   { text-shadow:2px 2px #00ff41, -2px -2px #ff0044; }
+      20%  { text-shadow:-2px 2px #00ffff, 2px -2px #aa00ff; }
+      40%  { text-shadow:2px -2px #ffff00, -2px 2px #00ff00; }
+      60%  { text-shadow:-4px 0 #00ff41, 4px 0 #ffff00; }
+      80%  { text-shadow:0 -4px #ff0044, 0 4px #aa00ff; }
+      100% { text-shadow:2px 2px #00ff41, -2px -2px #ff0044; }
+    }
+
+    .blink { animation:blink 1.2s step-end infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+
+    /* Closed overlay */
+    #closed-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      z-index:9999; font-family:'VT323', monospace; color:#ff0044;
+      font-size:2.8rem; text-align:center; padding:20px;
+    }
+    #closed-screen.hidden { display:none; }
+
+    #timer { font-size:3.5rem; color:#ff0044; margin:30px 0; }
+    #closed-msg { max-width:800px; line-height:1.3; }
+
+    /* Login screen */
+    #login-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      z-index:10000; font-family:'VT323', monospace; color:#ff0044;
+      font-size:2.2rem; text-align:center; padding:20px;
+    }
+    #login-screen.hidden { display:none; }
+
+    #login-prompt { margin-bottom:20px; }
+    #access-code { 
+      background:#111; color:#ff0044; border:2px solid #aa0030;
+      font-family:'Share Tech Mono', monospace; font-size:1.8rem;
+      padding:10px; width:200px; text-align:center;
+    }
+    #submit-code { 
+      background:#220000; color:#ff0044; border:2px solid #aa0030;
+      padding:12px 24px; font-size:1.6rem; cursor:pointer;
+    }
+    #submit-code:hover { background:#330000; }
+    #error-msg { color:#00ff41; margin-top:15px; font-size:1.4rem; }
+
+    /* Rules overlay */
+    #rules-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:flex-start; align-items:center;
+      z-index:9998; font-family:'VT323', monospace; color:#ff0044;
+      font-size:1.6rem; text-align:left; padding:40px 20px; overflow-y:auto;
+    }
+    #rules-screen.hidden { display:none; }
+
+    #rules-content { max-width:900px; line-height:1.5; }
+    #rules-content h2 { font-size:2.5rem; color:#ff0044; text-shadow:0 0 10px #ff0044; margin:30px 0 15px; }
+    #rules-content ul { list-style-type: none; }
+    #rules-content li { margin:15px 0; position:relative; padding-left:25px; }
+    #rules-content li:before { content: '☠'; position:absolute; left:0; color:#ff0044; }
+    #rules-content .scary { color:#ff0044; font-weight:bold; animation:blink 0.8s infinite; }
+    #close-rules { 
+      position:fixed; top:20px; right:20px; background:#220000; color:#ff0044;
+      border:2px solid #ff0044; padding:10px 20px; cursor:pointer; font-size:1.4rem;
+    }
+    #close-rules:hover { background:#330000; }
+
+    .scary-ascii {
+      font-family:'VT323', monospace; font-size:1.2rem;
+      white-space:pre; color:#ff0044; margin:40px 0; text-align:center;
+      animation:glitch 2s infinite;
+    }
+
+    /* Forum overlay */
+    #forum-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:flex-start; align-items:center;
+      z-index:9997; font-family:'VT323', monospace; color:#ff0044;
+      font-size:1.4rem; text-align:left; padding:40px 20px; overflow-y:auto;
+    }
+    #forum-screen.hidden { display:none; }
+
+    #forum-content { max-width:900px; line-height:1.5; color:#00ff41; }
+    #forum-content h2 { font-size:2.5rem; color:#ff0044; text-shadow:0 0 10px #ff0044; margin:30px 0 15px; }
+    #forum-content .thread { margin:20px 0; padding:15px; background:#111; border:1px solid #ff0044; }
+    #forum-content .thread-title { font-size:1.8rem; color:#ffaa00; }
+    #forum-content .post { margin:10px 0; padding:10px; background:#220000; border-left:3px solid #ff0044; }
+    #forum-content .user { color:#aaa; font-style:italic; }
+    #forum-content .scary { color:#ff0044; animation:blink 0.5s infinite; }
+    #close-forum { 
+      position:fixed; top:20px; right:20px; background:#220000; color:#ff0044;
+      border:2px solid #ff0044; padding:10px 20px; cursor:pointer; font-size:1.4rem;
+    }
+    #close-forum:hover { background:#330000; }
+
+    /* Post form */
+    #post-form {
+      max-width:900px; margin:40px auto; padding:20px; background:#111; border:1px solid #ff0044;
+    }
+    #post-form input, #post-form textarea { 
+      width:100%; margin:10px 0; padding:10px; background:#220000; color:#ff0044; border:1px solid #aa0030;
+      font-family:'Share Tech Mono', monospace;
+    }
+    #post-form button { background:#220000; color:#ff0044; border:2px solid #aa0030; padding:10px; cursor:pointer; }
+    #post-form button:hover { background:#330000; }
+
+    /* Sell form */
+    #sell-form {
+      max-width:900px; margin:40px auto; padding:20px; background:#111; border:1px solid #ff0044;
+    }
+    #sell-form input, #sell-form textarea { 
+      width:100%; margin:10px 0; padding:10px; background:#220000; color:#ff0044; border:1px solid #aa0030;
+      font-family:'Share Tech Mono', monospace;
+    }
+    #sell-form button { background:#220000; color:#ff0044; border:2px solid #aa0030; padding:10px; cursor:pointer; }
+    #sell-form button:hover { background:#330000; }
+
+    #user-posts { margin-top:30px; }
+    #user-posts .user-post { margin:20px 0; padding:15px; background:#111; border:1px solid #ff0044; }
+
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div id="login-prompt">ENTER ACCESS CODE TO ENTER YOU DIED</div>
+  <input type="password" id="access-code" maxlength="3" placeholder="***" />
+  <button id="submit-code">ENTER</button>
+  <div id="error-msg"></div>
+</div>
+
+<div id="closed-screen" class="hidden">
+  <div id="closed-msg">
+    █ YOU DIED OFFLINE █<br><br>
+    Technical maintenance from 00:00 to 01:00 (Kyiv time)<br>
+    Market will be back online at 01:00
+  </div>
+  <div id="timer">--:--:--</div>
+</div>
+
+<div id="rules-screen" class="hidden">
+  <button id="close-rules">CLOSE [X]</button>
+  <div id="rules-content">
+    <h2>YOU DIED RULES — BREAK THEM AND YOU DIE AGAIN</h2>
+    <div class="scary-ascii">
+      .     .       .  .   . .   .   . .    +  .
+        .     .  :     .    .. :. .___---------___.
+             .  .   .    .  :.:. _".^ .^ ^.  '.. :"-_. .
+          .  :       .  .  .:../:            . .^  :.:\.
+              .   . :: +. :.:/: .   .    .        . . .:\
+       .  :    .     . _ :::/:               .  ^ .  . .:\
+        .. . .   . - : :.:./.                           .:|
+      .      .     . :..|:                    .        .  .|
+        .       . : : ::: L:.. .   . -  _ . . '--+. . .   ..|
+       .   .   .   :    .v^   v v_, |  '",-7  - .     .     :|
+         .         : : :_     >-   : : : :. :                 .|
+           .    .  : .  . :     .   : .... .: :::: .           .|
+      .         .   . :: .| .     .   . ::::: .  .      |
+         .    .     . .   :: .  .     : . . .    .      .      ..
+      .. .    .       .  :.. .  .     :.. .    ..      .  .   ...
+                . . .    .: .:::     .: .::::  .: . . .      .. :  .
+     . .     . .  .. :  .::: .: :::: .:. ::::  ::: :::  .  .   :
+    ................................................................
+    </div>
+    <p class="scary">You have entered the Realm of Death. No mercy. Rules carved in bones. Read or perish eternally. We watch from the grave. Your soul is forfeit.</p>
+    
+    <ul>
+      <li>NO SCAMMING: Scam and we resurrect to hunt you. Your data to feds. <span class="scary">Your corpse will rot in digital hell.</span></li>
+      <li>PGP MANDATORY: No PGP = ban to abyss. <span class="scary">Demons will drag you down.</span></li>
+      <li>ESCROW ONLY: Bypass = crypto cursed. <span class="scary">Your wealth turns to ashes.</span></li>
+      <li>NO DOXXING: Reveal info = your life exposed. <span class="scary">Ghosts haunt your family.</span></li>
+      <li>NO CP: Mention = eternal torment. <span class="scary">Hellfire awaits.</span></li>
+      <li>NO TERROR: Sell death = become death. <span class="scary">Reaper comes for you.</span></li>
+      <li>MIN FEEDBACK: Low rating = deletion. <span class="scary">Erased from existence.</span></li>
+      <li>TRUST NONE: Verify or die. <span class="scary">Betrayal lurks in shadows.</span></li>
+      <li>TOR ONLY: Clearnet = ban. <span class="scary">Exposed to the light, you burn.</span></li>
+      <li>DISPUTES: Disagree = silence forever. <span class="scary">Buried alive.</span></li>
+      <li>NO ADMIN QUESTIONS: Ask = vanish. <span class="scary">We are death incarnate.</span></li>
+    </ul>
+
+    <div class="scary-ascii">
+      __          ___       _    _       _____ _      _____ 
+     /_ |        / (_)     | |  | |     / ____| |    |_   _|
+      | |  ___  |/_|  ___  | |  | | ___| |    | |      | |  
+      | | / _ \   | | / __| | |  | |/ _ \ |    | |      | |  
+      | || (_) |  | || (__  | |__| |  __/ |____| |____ _| |_ 
+      |_| \___/   |_| \___|  \____/ \___|\_____|______|_____|
+                                                              
+    </div>
+
+    <p class="scary">You Died is eternal. Mistakes = oblivion. Break rules = no warning. Vanish into void. Pray, mortal.</p>
+  </div>
+</div>
+
+<div id="forum-screen" class="hidden">
+  <button id="close-forum">CLOSE [X]</button>
+  <div id="forum-content">
+    <h2>YOU DIED FORUM — ECHOES OF THE DAMNED</h2>
+    <div class="scary-ascii">
+       .-.
+      (   )                
+       '-'   _..._         
+          .-'     '-.      
+         /           \     
+        |             |    
+        |    .-.      |    
+         \  /   \    /     
+          '-'     '-'      
+      THE GRAVES WHISPER... BUT THEY ALSO CURSE. YOUR WORDS SEAL YOUR FATE.
+    </div>
+    <p class="scary">Forum of the Undead. Post and risk your soul. We log all. Traitors feed the worms. <span class="scary">Death watches.</span></p>
+
+    <div id="post-form">
+      <h3>Create New Post</h3>
+      <input type="text" id="post-user" placeholder="Your Username (Anon if empty)" />
+      <input type="text" id="post-title" placeholder="Thread Title" required />
+      <textarea id="post-content" placeholder="Your Message..." required></textarea>
+      <button id="submit-post">Post to the Void</button>
+    </div>
+
+    <div id="user-posts"></div>
+
+    <div class="thread">
+      <div class="thread-title">Thread: Best Mixers 2026 — Don't Get Caught</div>
+      <div class="post">
+        <div class="user">AnonGhost [Level: Phantom] - 02/02/2026 23:45</div>
+        What's the best BTC mixer? CryptoWasher? <span class="scary">Or path to grave?</span>
+      </div>
+      <div class="post">
+        <div class="user">DarkLurker [Level: Reaper] - 02/03/2026 01:12</div>
+        Solid, no logs. PGP always. Slip = death. <span class="scary">Seen corpses.</span>
+      </div>
+      <div class="post">
+        <div class="user">AdminDeath [ADMIN] - 02/03/2026 02:00</div>
+        Monitored. No external links. Violate = eternal ban. <span class="scary">Blood on hands.</span>
+      </div>
+    </div>
+
+    <!-- More threads as before -->
+
+    <p class="scary">End of echoes. Deeper crypts require sacrifice. Post wisely.</p>
+  </div>
+</div>
+
+<div id="main-content" class="hidden">
+  <header>
+    <h1>YOU DIED</h1>
+    <div class="status">Version 4.4 • Mirror #13 • <span class="blink">UNDEAD</span></div>
+    <div class="mirror-info">
+      Last mirror update: Feb 03, 2026 14:21 UTC • PGP: E4F9•A2B1•C7D3•F8E2•... • Active mirrors: 7/10 • Surveillance Level: ETERNAL
+    </div>
+  </header>
+
+  <div class="warning">
+    [!] JS disabled = survival. Enable = doom. Use Tails, Whonix. PGP or perish. Trust none. <span class="scary">Death stalks you.</span>
+  </div>
+
+  <div class="ascii">
+     ██╗   ██╗ ██████╗ ██╗   ██╗    ██████╗ ██╗███████╗██████╗ 
+     ╚██╗ ██╔╝██╔═══██╗██║   ██║    ██╔══██╗██║██╔════╝██╔══██╗
+      ╚████╔╝ ██║   ██║██║   ██║    ██║  ██║██║█████╗  ██║  ██║
+       ╚██╔╝  ██║   ██║██║   ██║    ██║  ██║██║██╔══╝  ██║  ██║
+        ██║   ╚██████╔╝╚██████╔╝    ██████╔╝██║███████╗██████╔╝
+        ╚═╝    ╚═════╝  ╚═════╝     ╚═════╝ ╚═╝╚══════╝╚═════╝ 
+  </div>
+
+  <div class="warning" style="font-size:1.1rem; margin:30px 0;">
+    [!] SIMULATION ONLY. Fake items. Code: 666. Real use = your end. <span class="scary">Shadows claim souls.</span>
+  </div>
+
+  <div id="sell-form">
+    <h3>Add Your Listing (Sell in the Void)</h3>
+    <input type="text" id="sell-item" placeholder="Item Name" required />
+    <input type="text" id="sell-category" placeholder="Category" required />
+    <input type="text" id="sell-vendor" placeholder="Your Vendor Name" required />
+    <input type="text" id="sell-price" placeholder="Price (e.g., 0.01 BTC)" required />
+    <input type="text" id="sell-rating" placeholder="Rating (e.g., 4.5 / 100 reviews)" required />
+    <input type="text" id="sell-avail" placeholder="Availability (e.g., In stock: 10)" required />
+    <input type="text" id="sell-details" placeholder="Shipping / Details" required />
+    <button id="submit-sell">List for Sale</button>
+  </div>
+
+  <table id="market-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Vendor</th>
+        <th>Price</th>
+        <th>Rating / Feedback</th>
+        <th>Availability</th>
+        <th>Shipping / Details</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Existing items as before, plus more -->
+      <tr>
+        <td>Premium Residential Proxies • 100 IPs • Rotating • High Speed • Undetectable</td>
+        <td>Proxies / SOCKS5 / VPN</td>
+        <td class="vendor online">GhostProxy (online)</td>
+        <td class="price">0.085 BTC (~$4500)</td>
+        <td>4.92 / 1289 reviews</td>
+        <td>In stock: 500+ units</td>
+        <td>Instant delivery, global locations, 99% uptime</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <!-- ... other items ... -->
+      <tr>
+        <td>Custom Poison • Lethal Dose • Untraceable</td>
+        <td>Poisons / Chemicals</td>
+        <td class="vendor online">ToxinKing (online)</td>
+        <td class="price">0.05 BTC (~$2500)</td>
+        <td>4.85 / 312 reviews</td>
+        <td>In stock: Limited</td>
+        <td>Worldwide, discreet vial, instructions included</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <tr>
+        <td>Ghost SIM Cards • Anonymous Calls • Burner</td>
+        <td>Hardware / Anonymity</td>
+        <td class="vendor online">SilentCall (online)</td>
+        <td class="price">$50 (~0.0008 BTC)</td>
+        <td>4.78 / 890 reviews</td>
+        <td>In stock: 200+</td>
+        <td>EU/US shipping, 5-7 days, pre-activated</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="text-align:center; margin:60px 0;">
+    <a href="#" class="btn" style="font-size:1.4rem; padding:18px 40px;">Login / Register (PGP required)</a>
+    <a href="#" id="show-rules" class="btn" style="font-size:1.4rem; padding:18px 40px;">Market Rules & FAQ</a>
+    <a href="#" class="btn" style="font-size:1.4rem; padding:18px 40px;">Vendor & Admin PGP Keys</a>
+    <a href="#" id="show-forum" class="btn" style="font-size:1.4rem; padding:18px 40px;">Forum / Disputes</a>
+  </div>
+
+  <footer>
+    Use Tor • No clearnet • No JS in real • Yubikey 2FA • PGP mandatory<br>
+    You Died — 2025–2026 • No scam (or die) • Mirror: ███████ 100% • Uptime: 99.98% • Souls: INFINITE
+  </footer>
+</div>
+
+<script>
+// Timezone etc. as before
+
+// ... previous script ...
+
+// Add post to forum
+const submitPostBtn = document.getElementById('submit-post');
+const userPosts = document.getElementById('user-posts');
+
+submitPostBtn.addEventListener('click', () => {
+  const user = document.getElementById('post-user').value || 'Anon';
+  const title = document.getElementById('post-title').value;
+  const content = document.getElementById('post-content').value;
+  if (title && content) {
+    const postDiv = document.createElement('div');
+    postDiv.classList.add('thread');
+    postDiv.innerHTML = `
+      <div class="thread-title">Thread: ${title}</div>
+      <div class="post">
+        <div class="user">${user} [Level: New Soul] - ${new Date().toLocaleString()}</div>
+        ${content}
+      </div>
+    `;
+    userPosts.prepend(postDiv);
+    document.getElementById('post-title').value = '';
+    document.getElementById('post-content').value = '';
+  }
+});
+
+// Add listing to market
+const submitSellBtn = document.getElementById('submit-sell');
+const marketTbody = document.querySelector('#market-table tbody');
+
+submitSellBtn.addEventListener('click', () => {
+  const item = document.getElementById('sell-item').value;
+  const category = document.getElementById('sell-category').value;
+  const vendor = document.getElementById('sell-vendor').value;
+  const price = document.getElementById('sell-price').value;
+  const rating = document.getElementById('sell-rating').value;
+  const avail = document.getElementById('sell-avail').value;
+  const details = document.getElementById('sell-details').value;
+  if (item && category && vendor && price && rating && avail && details) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item}</td>
+      <td>${category}</td>
+      <td class="vendor online">${vendor} (online)</td>
+      <td class="price">${price}</td>
+      <td>${rating}</td>
+      <td>${avail}</td>
+      <td>${details}</td>
+      <td><a href="#" class="btn">Buy</a></td>
+    `;
+    marketTbody.appendChild(tr);
+    // Clear form
+    document.querySelectorAll('#sell-form input').forEach(input => input.value = '');
+  }
+});
+
+</script>
+
+</body>
+</html>
